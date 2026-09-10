@@ -109,4 +109,60 @@ document.addEventListener('DOMContentLoaded', () => {
             window.open(whatsappUrl, '_blank');
         });
     }
+
+    // Portfolio Slider Navigation
+    const projectSections = document.querySelectorAll('.project-section');
+    projectSections.forEach(section => {
+        const track = section.querySelector('.slider-track');
+        const prevBtn = section.querySelector('.prev-btn');
+        const nextBtn = section.querySelector('.next-btn');
+
+        if (track && prevBtn && nextBtn) {
+            const scrollAmount = 315; // slide width (300) + gap (15)
+
+            nextBtn.addEventListener('click', () => {
+                track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            });
+
+            prevBtn.addEventListener('click', () => {
+                track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            });
+
+            // Touch/swipe support is handled natively by overflow-x: auto
+            // Auto-slide on mobile for engagement
+            let autoSlideInterval;
+            const startAutoSlide = () => {
+                autoSlideInterval = setInterval(() => {
+                    if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 10) {
+                        track.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    }
+                }, 4000);
+            };
+
+            const stopAutoSlide = () => {
+                clearInterval(autoSlideInterval);
+            };
+
+            // Start auto-slide, pause on hover/touch
+            startAutoSlide();
+            track.addEventListener('mouseenter', stopAutoSlide);
+            track.addEventListener('mouseleave', startAutoSlide);
+            track.addEventListener('touchstart', stopAutoSlide, { passive: true });
+            track.addEventListener('touchend', () => {
+                setTimeout(startAutoSlide, 3000);
+            }, { passive: true });
+
+            // Pause auto-slide when buttons are used
+            prevBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                setTimeout(startAutoSlide, 6000);
+            });
+            nextBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                setTimeout(startAutoSlide, 6000);
+            });
+        }
+    });
 });
