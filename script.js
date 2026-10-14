@@ -67,48 +67,82 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(el);
     });
 
-    // Active Link Highlighting on Scroll
-    const sections = document.querySelectorAll('section, header');
+    // Multi-page Active Nav Link Handler & Scroll Spy for hash links
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     const navItems = document.querySelectorAll('.nav-links a:not(.btn)');
-
-    window.addEventListener('scroll', () => {
-        let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (pageYOffset >= (sectionTop - 150)) {
-                current = section.getAttribute('id');
-            }
-        });
-
-        navItems.forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === `#${current}`) {
-                item.classList.add('active');
-            }
-        });
+    
+    navItems.forEach(item => {
+        const itemHref = item.getAttribute('href');
+        if (itemHref === currentPath || (currentPath === '' && itemHref === 'index.html')) {
+            item.classList.add('active');
+        }
     });
 
-    // WhatsApp Form Submission
-    const whatsappForm = document.getElementById('whatsapp-form');
-    if (whatsappForm) {
-        whatsappForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const serviceSelect = document.getElementById('service');
-            const serviceText = serviceSelect.options[serviceSelect.selectedIndex].text;
-            const message = document.getElementById('message').value;
-            
-            const whatsappNumber = '254729292990';
-            const text = `Hello Eco Septic Ventures,%0A%0AI would like to make an inquiry from your website:%0A%0A*Name:* ${name}%0A*Phone:* ${phone}%0A*Service:* ${serviceText}%0A*Message:* ${message}`;
-            
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${text}`;
-            
-            window.open(whatsappUrl, '_blank');
+    // Hash link scroll spy (only runs if nav links contain hashes for current page)
+    const hashLinks = Array.from(navItems).filter(item => item.getAttribute('href').startsWith('#'));
+    if (hashLinks.length > 0) {
+        const sections = document.querySelectorAll('section, header');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            hashLinks.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${current}`) {
+                    item.classList.add('active');
+                }
+            });
         });
     }
+
+    // FAQ Accordion
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        if (question) {
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                faqItems.forEach(other => other.classList.remove('active'));
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    });
+
+    // WhatsApp Form Submission Handler (works for home and contact pages)
+    const forms = document.querySelectorAll('.contact-form, #whatsapp-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = (form.querySelector('[name="name"]') || {}).value || '';
+            const phone = (form.querySelector('[name="phone"]') || {}).value || '';
+            const serviceSelect = form.querySelector('[name="service"]');
+            const serviceText = serviceSelect ? serviceSelect.options[serviceSelect.selectedIndex].text : 'General Inquiry';
+            const locationInput = form.querySelector('[name="location"]');
+            const location = locationInput ? locationInput.value : '';
+            const message = (form.querySelector('[name="message"]') || {}).value || '';
+            
+            const whatsappNumber = '254729292990';
+            let text = `Hello Eco Septic Ventures,%0A%0AI would like to make an inquiry from your website:%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Service:* ${encodeURIComponent(serviceText)}`;
+            
+            if (location) {
+                text += `%0A*Location/County:* ${encodeURIComponent(location)}`;
+            }
+            if (message) {
+                text += `%0A*Message:* ${encodeURIComponent(message)}`;
+            }
+            
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${text}`;
+            window.open(whatsappUrl, '_blank');
+        });
+    });
 
     // Portfolio Slider Navigation
     const projectSections = document.querySelectorAll('.project-section');
@@ -128,8 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
             });
 
-            // Touch/swipe support is handled natively by overflow-x: auto
-            // Auto-slide on mobile for engagement
+            // Auto-slide
             let autoSlideInterval;
             const startAutoSlide = () => {
                 autoSlideInterval = setInterval(() => {
@@ -145,7 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(autoSlideInterval);
             };
 
-            // Start auto-slide, pause on hover/touch
             startAutoSlide();
             track.addEventListener('mouseenter', stopAutoSlide);
             track.addEventListener('mouseleave', startAutoSlide);
@@ -154,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(startAutoSlide, 3000);
             }, { passive: true });
 
-            // Pause auto-slide when buttons are used
             prevBtn.addEventListener('click', () => {
                 stopAutoSlide();
                 setTimeout(startAutoSlide, 6000);
